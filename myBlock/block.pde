@@ -1,8 +1,10 @@
 final int BLOCK_NUM_ROWS = 10;
 final int BLOCK_NUM_COLS = 30;
-final int BLOCK_MAX_LINKED = 4;
+final int BLOCK_MAX_LINKED = 3;
+final int BLOCK_MAX_HIT = 2;
 final int BLOCK_ANIMATION_LINKED_TIME = 1300;
 final int MAX_BLOCKS = BLOCK_NUM_ROWS * BLOCK_NUM_COLS;
+final int BLOCK_FINAL_COUNT = (int)(MAX_BLOCKS * 0.3);
 final int BLOCK_ANIMATION_LINKED = 0x8000;
 final float BLOCK_FALL_SPEED = 1.0f;
 float[] blockX = new float[MAX_BLOCKS];
@@ -14,8 +16,10 @@ float blockHeight = 20.0f;
 float blockHlfWidth = blockWidth / 2;
 float blockHlfHeight = blockHeight / 2;
 boolean[] hitFlag = new boolean[MAX_BLOCKS];
+boolean isFinal = false;
 int[] blockColor = new int[MAX_BLOCKS];
 int[] blockCount = new int[MAX_BLOCKS];
+int blockSum = 0;
 float blocksOffsetX;
 float blocksOffsetY = 100;
 color[] colorList = {
@@ -30,7 +34,7 @@ void initBlocks() {
     ArrayList<ArrayList<Integer>> linkedBlocksList;
 
     for(int i = 0; i < MAX_BLOCKS; i++) {
-        blockCount[i] = colorList.length;
+        blockCount[i] = BLOCK_MAX_HIT;
         blockColor[i] = (int)random(colorList.length);
     }
 
@@ -51,10 +55,12 @@ void checkHitBlock() {
     float ballTop = ballY - ballRadius;
     int bXi = (int)((ballLeft - blocksOffsetX) / blockWidth);
     int bYi = (int)((ballTop - blocksOffsetY) / blockHeight);
+    float ebX = (ballX + ballRadius - blocksOffsetX) / blockWidth;
+    float ebY = (ballY + ballRadius - blocksOffsetY) / blockHeight;
     boolean isHlz = false, isVrt = false;
 
-    for(int y = bYi; y < bYi + ballDiameter / blockHeight; y++) {
-        for(int x = bXi; x < bXi + ballDiameter / blockWidth; x++) {
+    for(int y = bYi; y < bYi + ebY; y++) {
+        for(int x = bXi; x < ebX; x++) {
             if(x < 0 || x >= BLOCK_NUM_COLS
             || y < 0 || y >= BLOCK_NUM_ROWS) continue;
 
@@ -66,7 +72,9 @@ void checkHitBlock() {
 
             if(hitBoxBox(bX, bY, blockWidth, blockHeight, ballX - ballRadius, ballY - ballRadius, ballDiameter, ballDiameter)) {
                 blockCount[i]--;
-                blockColor[i] = (blockColor[i] + 1) % colorList.length;
+                
+                color cc = blockColor[i];
+                while(cc == blockColor[i]) blockColor[i] = (int)random(colorList.length);
                 if(bX < ballLastX && ballLastX < bX + blockWidth) {
                     isHlz = true;
                     isVrt = false;
@@ -117,18 +125,21 @@ void checkLinkedBlock() {
         }
     }
 }
+
 ArrayList<ArrayList<Integer>> getLinkedBlock() {
     ArrayList<ArrayList<Integer>> linkedBlocksList = new ArrayList<ArrayList<Integer>>();
     int[] checkBlocks = new int[MAX_BLOCKS];
     boolean isLinked = false;
 
+    blockSum = 0;
     for(int y = 0; y < BLOCK_NUM_ROWS; y++) {
         for(int x = 0; x < BLOCK_NUM_COLS; x++) {
             int i = y * BLOCK_NUM_COLS + x;
             ArrayList<Integer> linkedBlocks = new ArrayList<Integer>();
 
-            if(checkBlocks[i] != 0) continue;
             if(blockCount[i] <= 0) continue;
+            blockSum++;
+            if(checkBlocks[i] != 0) continue;
             if(blockOffsetY[i] != 0) continue;
             if(blockEffect[i] != 0) continue;
 
@@ -204,6 +215,16 @@ void moveBlock() {
 
     checkLinkedBlock();
     fallBlock();
+
+    if(!isFinal && blockSum <= BLOCK_FINAL_COUNT) {
+        isFinal = true;
+        
+        for(int i = 0; i < MAX_BLOCKS; i++) {
+            if(blockCount[i] > 0) {
+                blockCount[i] = 1;
+            }
+        }
+    }
 }
 
 void drawBlock() {

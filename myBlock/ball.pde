@@ -3,7 +3,7 @@ float ballY;
 float ballLastX = ballX;
 float ballLastY = ballY;
 
-float ballV = 6.0f;
+float ballV = 8.0f;
 float ballVX = cos(PI / 4) * ballV;
 float ballVY = sin(PI / 4) * ballV;
 float ballMaxDir = PI / 3;

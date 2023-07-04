@@ -1,6 +1,6 @@
 float barX = 500.f;
 float barY = 600.f;
-float barVX = 10.0f;
+float barVX = 11.0f;
 float barWidth = 200.0f;
 float barHeight = 30.0f;
 float barHlfWidth = barWidth /2;
