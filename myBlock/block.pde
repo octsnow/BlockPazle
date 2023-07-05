@@ -1,5 +1,5 @@
 final int BLOCK_NUM_ROWS = 10;
-final int BLOCK_NUM_COLS = 30;
+final int BLOCK_NUM_COLS = 20;
 final int BLOCK_MAX_LINKED = 3;
 final int BLOCK_MAX_HIT = 2;
 final int BLOCK_ANIMATION_LINKED_TIME = 1300;
@@ -7,12 +7,13 @@ final int MAX_BLOCKS = BLOCK_NUM_ROWS * BLOCK_NUM_COLS;
 final int BLOCK_FINAL_COUNT = (int)(MAX_BLOCKS * 0.3);
 final int BLOCK_ANIMATION_LINKED = 0x8000;
 final float BLOCK_FALL_SPEED = 1.0f;
+
 float[] blockX = new float[MAX_BLOCKS];
 float[] blockY = new float[MAX_BLOCKS];
 float[] blockOffsetY = new float[MAX_BLOCKS];
 int[] blockEffect = new int[MAX_BLOCKS];
-float blockWidth = 30.0f;
-float blockHeight = 20.0f;
+float blockWidth = 40.0f;
+float blockHeight = 40.0f;
 float blockHlfWidth = blockWidth / 2;
 float blockHlfHeight = blockHeight / 2;
 boolean[] hitFlag = new boolean[MAX_BLOCKS];
@@ -21,13 +22,16 @@ int[] blockColor = new int[MAX_BLOCKS];
 int[] blockCount = new int[MAX_BLOCKS];
 int blockSum = 0;
 float blocksOffsetX;
-float blocksOffsetY = 100;
+float blocksOffsetY = 30;
+
+boolean isFalling = false;
+int linkedCount = 0;
+
 color[] colorList = {
-    #F24C3D,
-    #6527BE,
-    #00DFA2,
-    #0079FF,
-    #F6FA70
+    #FF0000,
+    #00FF00,
+    #0000FF,
+    #FFFF00
 };
 
 void initBlocks() {
@@ -73,6 +77,7 @@ void checkHitBlock() {
             if(hitBoxBox(bX, bY, blockWidth, blockHeight, ballX - ballRadius, ballY - ballRadius, ballDiameter, ballDiameter)) {
                 blockCount[i]--;
                 
+                play(0);
                 color cc = blockColor[i];
                 while(cc == blockColor[i]) blockColor[i] = (int)random(colorList.length);
                 if(bX < ballLastX && ballLastX < bX + blockWidth) {
@@ -112,6 +117,7 @@ void fallBlock() {
             blockCount[j] = blockCount[i];
             blockCount[i] = 0;
             blockOffsetY[i] = -(j - i) / BLOCK_NUM_COLS * blockHeight;
+            isFalling = true;
         }
     }
 }
@@ -119,6 +125,13 @@ void fallBlock() {
 void checkLinkedBlock() {
     ArrayList<ArrayList<Integer>> linkedBlocksList = getLinkedBlock();
 
+    if(linkedBlocksList.size() > 0) {
+        linkedCount++;
+        if(linkedCount > 4) linkedCount = 4;
+        play(linkedCount);
+    } else if(!isFalling) {
+        linkedCount = 0;
+    }
     for(ArrayList<Integer> linkedBlocks : linkedBlocksList) {
        for(int i : linkedBlocks) {
             blockEffect[i] = BLOCK_ANIMATION_LINKED;
@@ -206,11 +219,17 @@ ArrayList<Integer> checkLinked(int x, int y, int checkColor, ArrayList<Integer> 
 }
 
 void moveBlock() {
+    boolean noFalling = true;
     for(int i = 0; i < MAX_BLOCKS; i++) {
-        if(blockOffsetY[i] < 0) {
+        if(blockCount[i] > 0 && blockOffsetY[i] < 0) {
+            noFalling = false;
             blockOffsetY[i] += BLOCK_FALL_SPEED;
             if(blockOffsetY[i] > 0) blockOffsetY[i] = 0;
         }
+    }
+
+    if(noFalling) {
+        isFalling = false;
     }
 
     checkLinkedBlock();

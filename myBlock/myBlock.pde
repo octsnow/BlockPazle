@@ -8,6 +8,7 @@ void setup() {
     size(1280, 720);
     initBlocks();
     initBall();
+    initAudio();
 
     last_time = millis();
 }
@@ -30,3 +31,4 @@ void draw() {
 
     last_time = millis();
 }
+
